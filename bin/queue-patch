@@ -41,9 +41,6 @@ module QueuePatch
   end
 
   class QueueList
-    def initialize
-      #@markdown_text = IO.read()
-    end
 
     def <<(patch_data)
       File.open(PATCH_LIST_LOCATION, 'a') do |f|
