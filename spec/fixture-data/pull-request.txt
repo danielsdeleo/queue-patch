@@ -1,0 +1,7 @@
+brucek wants someone to pull from brucek:CHEF-1940:
+
+Fixes issue with file group owner names having spaces and backslashes (had this occur on a system with Active Directory sync with a group named 'DOMAIN\Domain users').
+
+http://tickets.opscode.com/browse/CHEF-1940
+
+View Pull Request: https://github.com/opscode/chef/pull/41
