@@ -1,0 +1,11 @@
+= Queue Patch
+I use this as a todo list of sorts for keeping an eye on 
+Chef[http://wiki.opscode.com/display/chef] patches and pull requests.
+
+I only really need it because we have a JIRA[http://tickets.opscode.com] and
+also get pull requests, some of which match up with JIRA tickets and some of
+which don't, and we require contributors to sign a CLA.
+
+If you're not in a situation like that, this will probably be pretty worthless
+to you, but maybe you'll think it's a helpful starting point if you get a huge
+amount of pull requests.
