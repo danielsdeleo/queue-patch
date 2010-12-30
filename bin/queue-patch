@@ -68,6 +68,8 @@ module QueuePatch
         QueueList.new << PatchData.new(`pbpaste`)
       when "list"
         puts QueueList.new.to_s
+      when "edit"
+        exec "vim #{PATCH_LIST_LOCATION}"
       else
         puts "Usage: queue-patch add|paste|list"
         exit 1
