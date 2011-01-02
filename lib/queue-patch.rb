@@ -30,11 +30,26 @@ module QueuePatch
       @github_url ||= urls.find { |u| u =~ /github/ }
     end
 
+    def project
+      @project ||= (github_url && github_url[%r{https?\://github.com/opscode/([^/]+)/pull/.+}, 1])
+    end
+
+    def pull_request_number
+      @pull_request_number ||= (github_url && github_url[%r{https?\://github.com/opscode/[^/]+/pull/([\d]+)}, 1])
+    end
+
     def to_md
       md = "* "
-      md << "#{tickets.first} " unless tickets.empty?
-      md << "#{github_url} " if github_url
-      md << "#{github_user}/#{github_branch}" if (github_user && github_branch)
+      unless tickets.empty?
+        md << "[#{tickets.first}](http://tickets.opscode.com/browse/#{tickets.first}) "
+      end
+      if github_url && pull_request_number && project
+        md << "[pull request #{project}-#{pull_request_number}](#{github_url}) "
+      end
+      if github_user && github_branch && project
+        md << "[#{github_user}/#{github_branch}](https://github.com/#{github_user}/#{project}/commits/CHEF-1959)"
+      end
+      md
     end
 
   end
@@ -69,8 +84,28 @@ module QueuePatch
         puts QueueList.new.to_s
       when "edit"
         exec "vim #{PATCH_LIST_LOCATION}"
+      when "show"
+        require 'tmpdir'
+        require 'rubygems'
+        require 'rdiscount'
+
+        html_path = File.expand_path("patch-queue.html", Dir.tmpdir)
+
+        File.open(html_path, "w+") do |html_file|
+          html_file.write(RDiscount.new(IO.read(PATCH_LIST_LOCATION)).to_html)
+        end
+
+        exec("open #{html_path}")
+      when "linkify"
+        IO.readlines(PATCH_LIST_LOCATION).each do |line|
+          if line =~ /^\*/
+            puts PatchData.new(line).to_md
+          else
+            puts line
+          end
+        end
       else
-        puts "Usage: queue-patch add|paste|list"
+        puts "Usage: queue-patch add|paste|list|edit|show|linkify"
         exit 1
       end
       exit 0
