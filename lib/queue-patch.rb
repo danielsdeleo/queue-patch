@@ -10,6 +10,8 @@ module QueuePatch
   TICKET_MATCH = /((CHEF|OHAI)\-[\d]{2,})/i
   PULL_REQ = /([\S]+) wants someone to pull from (([^:\s]+):([^:\s]+))/
 
+  MD_BULLET = /^\*/
+
   class PatchData
 
     attr_reader :urls
@@ -55,6 +57,19 @@ module QueuePatch
   end
 
   class QueueList
+    include Enumerable
+
+    def query(query_str)
+      find { |p| p =~ /#{Regexp.escape(query_str)}/ }
+    end
+
+    def queued_patches
+      @queued_patches ||= IO.readlines(PATCH_LIST_LOCATION).grep(MD_BULLET)
+    end
+
+    def each
+      queued_patches.each { |p| yield p }
+    end
 
     def <<(patch_data)
       File.open(PATCH_LIST_LOCATION, 'a') do |f|
@@ -75,9 +90,13 @@ module QueuePatch
     end
 
     def run
-      case ARGV.first
+      case ARGV.shift
       when "add"
-        QueueList.new << PatchData.new(IO.read)
+        if ARGV.empty?
+          QueueList.new << PatchData.new(IO.read(STDIN))
+        else
+          QueueList.new << PatchData.new(ARGV.join(" "))
+        end
       when "paste"
         QueueList.new << PatchData.new(`pbpaste`)
       when "list"
@@ -96,9 +115,11 @@ module QueuePatch
         end
 
         exec("open #{html_path}")
+      when "find"
+        puts QueueList.new.query(ARGV.shift)
       when "linkify"
         IO.readlines(PATCH_LIST_LOCATION).each do |line|
-          if line =~ /^\*/
+          if line =~ MD_BULLET
             puts PatchData.new(line).to_md
           else
             puts line
